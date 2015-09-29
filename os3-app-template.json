@@ -43,7 +43,7 @@
                 }
             },
             "spec": {
-                "dockerImageRepository": "dhirajsb/fuse-sti"
+                "dockerImageRepository": "dhirajsb/fuse-sti:latest"
             },
             "status": {
                 "dockerImageRepository": ""
