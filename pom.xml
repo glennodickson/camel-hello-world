@@ -40,7 +40,7 @@ permissions and limitations under the License.
     <docker.maven.plugin.version>0.13.2</docker.maven.plugin.version>
     <camel.version>2.16.0</camel.version>
     <karaf.version>2.4.3</karaf.version>
-    <karaf.plugin.version>4.0.2</karaf.plugin.version>
+    <karaf.plugin.version>4.0.1</karaf.plugin.version>
 
     <docker.from>fabric8/s2i-karaf:1.1.5</docker.from>
 
