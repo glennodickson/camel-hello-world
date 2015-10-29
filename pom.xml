@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <!--
 
-     Copyright 2005-2015 Red Hat, Inc.
+Copyright 2005-2015 Red Hat, Inc.
 
-     Red Hat licenses this file to you under the Apache License, version
-     2.0 (the "License"); you may not use this file except in compliance
-     with the License.  You may obtain a copy of the License at
+Red Hat licenses this file to you under the Apache License, version
+2.0 (the "License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-     implied.  See the License for the specific language governing
-     permissions and limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied.  See the License for the specific language governing
+permissions and limitations under the License.
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -25,7 +25,7 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Camel Hello World</name>
-  <description>Camel Hello World in custom Karaf4 assembly</description>
+  <description>Camel Hello World in custom JBoss Fuse/Karaf assembly</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -36,15 +36,11 @@
     <maven.compiler.source>1.7</maven.compiler.source>
 
     <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
-    <fabric8.version>2.2.14</fabric8.version>
-    <jube.version>2.2.0</jube.version>
+    <fabric8.version>2.2.55</fabric8.version>
     <docker.maven.plugin.version>0.13.2</docker.maven.plugin.version>
     <camel.version>2.16.0</camel.version>
     <karaf.version>2.4.3</karaf.version>
     <karaf.plugin.version>4.0.2</karaf.plugin.version>
-
-    <!-- karaf4 custom assembly for karaf4-sti -->
-    <docker.env.KARAF4_ASSEMBLY>${project.artifactId}-${project.version}.tar.gz</docker.env.KARAF4_ASSEMBLY>
 
     <docker.from>fabric8/s2i-karaf:1.1.5</docker.from>
 
@@ -75,44 +71,38 @@
   </dependencyManagement>
 
   <dependencies>
-    <!--
-     For this example, we will be using the OSGi Blueprint XML syntax for Apache Camel.
-   -->
-<!-- commented because it causes the maven plugin to try to deploy it in the container
+
+
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-core</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-blueprint</artifactId>
     </dependency>
--->
 
     <!-- Karaf microcontainer dependencies -->
     <dependency>
       <!-- scope is compile so all features (there is only one) are installed into startup.properties,
       and the feature repo itself is not added in etc/org.apache.karaf.features.cfg file -->
       <groupId>org.apache.karaf.features</groupId>
-      <artifactId>framework</artifactId>
-      <version>${karaf.version}</version>
+      <artifactId>static</artifactId>
+      <version>${karaf.plugin.version}</version>
       <type>kar</type>
     </dependency>
     <dependency>
-      <!-- scope is runtime so the feature repo is listed in etc/org.apache.karaf.features.cfg file,
-      and features will installed into the system directory if specify in the plugin configuration -->
-      <groupId>org.apache.karaf.features</groupId>
+      <groupId>org.apache.karaf.assemblies.features</groupId>
       <artifactId>standard</artifactId>
       <version>${karaf.version}</version>
       <classifier>features</classifier>
       <type>xml</type>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
-      <!-- scope is runtime so the feature repo is listed in etc/org.apache.karaf.features.cfg file,
-      and features will installed into the system directory if specify in the plugin configuration -->
       <groupId>org.apache.camel.karaf</groupId>
       <artifactId>apache-camel</artifactId>
-      <version>${camel.version}</version>
       <classifier>features</classifier>
       <type>xml</type>
-      <scope>runtime</scope>
     </dependency>
   </dependencies>
 
@@ -136,6 +126,27 @@
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>fabric8-maven-plugin</artifactId>
+        <version>${fabric8.version}</version>
+        <executions>
+          <execution>
+            <id>json</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>json</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>attach</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
@@ -188,41 +199,29 @@
         </executions>
         <configuration>
           <!-- do not include build output directory -->
+          <karafVersion>v24</karafVersion>
+          <useReferenceUrls>true</useReferenceUrls>
           <includeBuildOutputDirectory>false</includeBuildOutputDirectory>
           <!-- no startupFeatures -->
-          <bootFeatures>
-<!--
-            <feature>wrap</feature>
+          <startupFeatures>
+            <feature>karaf-framework</feature>
             <feature>shell</feature>
-            <feature>shell-compat</feature>
-            <feature>feature</feature>
-            <feature>ssh</feature>
-            <feature>bundle</feature>
-            <feature>config</feature>
-            <feature>deployer</feature>
-            <feature>diagnostic</feature>
-            <feature>feature</feature>
-            <feature>instance</feature>
-            <feature>kar</feature>
-            <feature>package</feature>
-            <feature>service</feature>
--->
             <feature>jaas</feature>
-            <feature>management</feature>
-            <feature>log</feature>
-            <feature>system</feature>
             <feature>aries-blueprint</feature>
-<!-- commented because it pulls in bundles like camel-commands, which should be optional
-            <feature>camel-core</feature>
             <feature>camel-blueprint</feature>
--->
-          </bootFeatures>
-          <bootBundles>
-            <bootBundle>mvn:org.apache.camel/camel-core/${camel.version}</bootBundle>
-            <bootBundle>mvn:org.apache.camel/camel-catalog/${camel.version}</bootBundle>
-            <bootBundle>mvn:org.apache.camel/camel-blueprint/${camel.version}</bootBundle>
+          </startupFeatures>
+          <startupBundles>
             <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
-          </bootBundles>
+          </startupBundles>
+          <blacklistedBundles>
+            <bundle>mvn:org.ops4j.pax.logging/pax-logging-api/1.8.4</bundle>
+            <bundle>mvn:org.ops4j.pax.logging/pax-logging-service/1.8.4</bundle>
+          </blacklistedBundles>
+          <libraries>
+            <library>
+              mvn:org.apache.karaf.jaas/org.apache.karaf.jaas.boot/${karaf.version};type:=boot;export:=true;delegate:=true
+            </library>
+          </libraries>
         </configuration>
       </plugin>
       <plugin>
@@ -242,8 +241,8 @@
                   <dockerFileDir>${project.build.directory}/fabric8/docker</dockerFileDir>
                   <basedir>/opt/jboss</basedir>
                   <inline xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
                     <id>${project.artifactId}</id>
                     <files>
                       <!-- copy karaf archive -->
@@ -304,68 +303,33 @@
         </plugins>
       </build>
     </profile>
-    <profile>
-      <id>jube</id>
-      <activation>
-        <property>
-          <name>jube.plugin.enabled</name>
-          <value>true</value>
-        </property>
-      </activation>
-<!--
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.fabric8.jube</groupId>
-            <artifactId>jube-maven-plugin</artifactId>
-            <version>${jube.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>build</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-            <configuration>
-              <assemblyDescriptor>${project.build.directory}/fabric8/assembly.xml</assemblyDescriptor>
-              <exportDir>/</exportDir>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
--->
-    </profile>
-
-    <profile>
-      <id>fabric8-snapshot</id>
-      <properties>
-        <fabric8.version>2.3-SNAPSHOT</fabric8.version>
-      </properties>
-    </profile>
   </profiles>
 
-  <!-- fusesource repo for karaf snapshot plugin -->
-  <pluginRepositories>
-    <pluginRepository>
-      <id>central</id>
-      <url>http://repo1.maven.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </pluginRepository>
-    <pluginRepository>
-      <id>fusesource-repo</id>
-      <url>http://repo.fusesource.com/nexus/content/groups/m2-proxy</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </pluginRepository>
-  </pluginRepositories>
+
+    <repositories>
+      <repository>
+        <id>oss-sonatype-snapshots</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        <name>OSS Sonatype Nexus Snapshots</name>
+        <releases>
+          <enabled>false</enabled>
+        </releases>
+        <snapshots>
+          <enabled>true</enabled>
+        </snapshots>
+      </repository>
+    </repositories>
+    <pluginRepositories>
+      <pluginRepository>
+        <id>oss-sonatype-snapshots</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        <name>OSS Sonatype Nexus Snapshots</name>
+        <releases>
+          <enabled>false</enabled>
+        </releases>
+        <snapshots>
+          <enabled>true</enabled>
+        </snapshots>
+      </pluginRepository>
+    </pluginRepositories>
 </project>
