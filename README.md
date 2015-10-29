@@ -14,4 +14,4 @@ The goals karaf:assembly and karaf:archive MUST be called to create the custom k
 
 You can run this application on OpenShift using the Source 2 Image builders like this:
 
-   oc new-app --strategy=source fabric8/s2i-karaf:1.1.5~https://github.com/<YOUR-REPO>/camel-hello-world
+   `oc new-app --strategy=source fabric8/s2i-karaf:1.1.5~https://github.com/<YOUR-REPO>/camel-hello-world`
